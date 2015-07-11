@@ -1,0 +1,128 @@
+
+#define kSwipeMaxDuration 300
+#define kSwipeMinDistance 60
+
+typedef enum {
+    kSwipeGestureRecognizerDirectionRight = 1 << 0,
+    kSwipeGestureRecognizerDirectionLeft  = 1 << 1,
+    kSwipeGestureRecognizerDirectionUp    = 1 << 2,
+    kSwipeGestureRecognizerDirectionDown  = 1 << 3
+} CCSwipeGestureRecognizerDirection;
+
+//this class is used for storing information about the swipe gesture
+class CCSwipe : public cocos2d::CCObject
+{
+
+    bool init() {return true;}
+
+	static CCSwipe* create();
+    CCSwipeGestureRecognizerDirection direction;
+    cocos2d::CCPoint location;
+};
+
+class CCSwipeGestureRecognizer : public CCGestureRecognizer
+{
+
+    bool init();
+    ~CCSwipeGestureRecognizer();
+
+	static CCSwipeGestureRecognizer* create();
+    virtual bool ccTouchBegan(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+    virtual void ccTouchMoved(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent){};
+    virtual void ccTouchEnded(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+
+};
+
+class CCGestureRecognizer : public cocos2d::CCLayer
+{
+public:
+     void create();
+    ~CCGestureRecognizer();
+    void setTarget(cocos2d::CCObject * tar, cocos2d::SEL_CallFuncO sel);
+    
+    //setParent is called after the layer is added as a child
+    virtual void setParent(cocos2d::CCNode*p);
+
+};
+
+
+
+#define kTapMaxDuration 150
+#define kTapMaxDurationBetweenTaps 220
+#define kTapMaxDistance 20
+#define kTapMaxDistanceBetweenTaps 20
+
+//this class is used for storing information about the tap gesture
+class CCTap : public cocos2d::CCObject
+{
+
+    bool init() {return true;}
+    CREATE_FUNC(CCTap);
+	static CCTap* create();
+    cocos2d::CCPoint location;
+};
+
+class CCTapGestureRecognizer : public CCGestureRecognizer
+{
+
+    bool init();
+    ~CCTapGestureRecognizer();
+
+	static CCTapGestureRecognizer* create();
+    virtual bool ccTouchBegan(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+    virtual void ccTouchMoved(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent){};
+    virtual void ccTouchEnded(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+
+};
+
+
+//this class is used for storing information about the pan gesture
+class CCPan : public cocos2d::CCObject
+{
+
+    bool init() {return true;}
+	static CCPan* create();
+    cocos2d::CCPoint location;
+    cocos2d::CCPoint delta;
+};
+
+class CCPanGestureRecognizer : public CCGestureRecognizer
+{
+
+    bool init();
+    ~CCPanGestureRecognizer();
+    static CCPanGestureRecognizer* create();
+    virtual bool ccTouchBegan(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+    virtual void ccTouchMoved(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+    virtual void ccTouchEnded(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+};
+
+
+#define kPinchThreshold 2.0
+
+typedef enum {
+    kPinchGestureRecognizerTypeClose    = 1 << 0,
+    kPinchGestureRecognizerTypeOpen     = 1 << 1
+} CCPinchGestureRecognizerType;
+
+//this class is used for storing information about the pinch gesture
+class CCPinch : public cocos2d::CCObject
+{
+
+    bool init() {return true;}
+	static CCPinch* create();
+    CCPinchGestureRecognizerType type;
+};
+
+class CCPinchGestureRecognizer : public CCGestureRecognizer
+{
+
+    bool init();
+    ~CCPinchGestureRecognizer();
+    static CCPinchGestureRecognizer* create();
+    virtual bool ccTouchBegan(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+    virtual void ccTouchMoved(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+    virtual void ccTouchEnded(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+
+};
+

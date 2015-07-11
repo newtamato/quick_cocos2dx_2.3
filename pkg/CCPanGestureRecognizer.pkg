@@ -1,0 +1,22 @@
+
+//this class is used for storing information about the pan gesture
+class CCPan : public cocos2d::CCObject
+{
+
+    bool init() {return true;}
+	static CCPan* create();
+    cocos2d::CCPoint location;
+    cocos2d::CCPoint delta;
+};
+
+class CCPanGestureRecognizer : public CCGestureRecognizer
+{
+
+    bool init();
+    ~CCPanGestureRecognizer();
+    static CCPanGestureRecognizer* create();
+    virtual bool ccTouchBegan(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+    virtual void ccTouchMoved(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+    virtual void ccTouchEnded(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+};
+

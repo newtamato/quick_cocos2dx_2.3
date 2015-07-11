@@ -1,0 +1,29 @@
+
+#define kLongPressMinDuration 0.5
+
+//this class is used for storing information about the long press gesture
+class CCLongPress : public cocos2d::CCObject
+{
+public:
+    bool init() {return true;}
+   
+	static CCLongPress* create();
+    cocos2d::CCPoint location;
+};
+
+class CCLongPressGestureRecognizer : public CCGestureRecognizer
+{
+public:
+    bool init();
+    ~CCLongPressGestureRecognizer();
+	static CCLongPressGestureRecognizer* create();
+
+    void timerDidEnd(float dt);
+    
+    virtual bool ccTouchBegan(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+    virtual void ccTouchMoved(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent){};
+    virtual void ccTouchEnded(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+
+};
+
+#endif

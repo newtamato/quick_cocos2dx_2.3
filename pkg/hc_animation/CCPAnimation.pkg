@@ -1,0 +1,19 @@
+class CCPAnimation : public CCNode
+{
+   
+    CCPAnimation();
+    ~CCPAnimation();
+    
+    
+    void setAniData(CCPAniData* aniData){this->m_pAniData = aniData;this->m_frameInterval = 1.0 / aniData->fps;};
+    
+    void play();
+    void stop();
+    void gotoAndPlay(int frame);    
+	void gotoAndStop(int frame);
+    void nextFrame();
+    void prevFrame();
+    
+    static CCPAnimation* create(const char* animationName, const char* key);
+};
+

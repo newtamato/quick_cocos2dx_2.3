@@ -1,0 +1,590 @@
+From 608c3efade7ab9979b020192248639885c2efbb9 Mon Sep 17 00:00:00 2001
+From: Jolie Hou <lhou@taplion.com>
+Date: Sun, 1 Mar 2015 19:50:24 +0800
+Subject: [PATCH 2/3] android font shadow and stroke
+
+---
+ .../java/src/org/cocos2dx/lib/Cocos2dxBitmap.java  | 190 +++++++++--------
+ lib/cocos2d-x/cocos2dx/platform/ios/CCImage.mm     | 236 +++++++++------------
+ 2 files changed, 212 insertions(+), 214 deletions(-)
+
+diff --git a/lib/cocos2d-x/cocos2dx/platform/android/java/src/org/cocos2dx/lib/Cocos2dxBitmap.java b/lib/cocos2d-x/cocos2dx/platform/android/java/src/org/cocos2dx/lib/Cocos2dxBitmap.java
+index fcd4598..09831a2 100644
+--- a/lib/cocos2d-x/cocos2dx/platform/android/java/src/org/cocos2dx/lib/Cocos2dxBitmap.java
++++ b/lib/cocos2d-x/cocos2dx/platform/android/java/src/org/cocos2dx/lib/Cocos2dxBitmap.java
+@@ -96,99 +96,121 @@ public class Cocos2dxBitmap {
+ 		//
+ 		createTextBitmapShadowStroke( pString, pFontName, pFontSize, 1.0f, 1.0f, 1.0f,   	// text font and color
+ 									  pAlignment, pWidth, pHeight,							// alignment and size
+-									  false, 0.0f, 0.0f, 0.0f,								// no shadow
++									  true, 2.0f, 2.0f, 2.0f,								// no shadow
+ 									  false, 1.0f, 1.0f, 1.0f, 1.0f);						// no stroke
+ 									 
+ 	}
+ 
+-	public static void createTextBitmapShadowStroke(String pString,  final String pFontName, final int pFontSize,
+-													final float fontTintR, final float fontTintG, final float fontTintB,
+-													final int pAlignment, final int pWidth, final int pHeight, final boolean shadow,
+-													final float shadowDX, final float shadowDY, final float shadowBlur, final boolean stroke,
+-													final float strokeR, final float strokeG, final float strokeB, final float strokeSize) {
+-
+-		
+-		final int horizontalAlignment = pAlignment & 0x0F;
+-		final int verticalAlignment   = (pAlignment >> 4) & 0x0F;
+-
+-		pString = Cocos2dxBitmap.refactorString(pString);
+-		final Paint paint = Cocos2dxBitmap.newPaint(pFontName, pFontSize, horizontalAlignment);
+-		
+-		// set the paint color
+-		paint.setARGB(255, (int)(255.0 * fontTintR), (int)(255.0 * fontTintG), (int)(255.0 * fontTintB));
+-
+-		final TextProperty textProperty = Cocos2dxBitmap.computeTextProperty(pString, pWidth, pHeight, paint);
+-		final int bitmapTotalHeight = (pHeight == 0 ? textProperty.mTotalHeight: pHeight);
+-		
+-		// padding needed when using shadows (not used otherwise)
+-		float bitmapPaddingX   = 0.0f;
+-		float bitmapPaddingY   = 0.0f;
+-		float renderTextDeltaX = 0.0f;
+-		float renderTextDeltaY = 0.0f;
+-		
+-		if ( shadow ) {
+-
+-			int shadowColor = 0xff7d7d7d;
+-			paint.setShadowLayer(shadowBlur, shadowDX, shadowDY, shadowColor);
+ 	
+-			bitmapPaddingX = Math.abs(shadowDX);
+-			bitmapPaddingY = Math.abs(shadowDY);
+-					
+-			if ( shadowDX < 0.0 )
+-			{
+-				renderTextDeltaX = bitmapPaddingX;
+-			}
+-			
+-			if ( shadowDY < 0.0 )
+-			{
+-				renderTextDeltaY = 	bitmapPaddingY;
+-			}
+-		}
+-		
+-		final Bitmap bitmap = Bitmap.createBitmap(textProperty.mMaxWidth + (int)bitmapPaddingX,
+-				bitmapTotalHeight + (int)bitmapPaddingY, Bitmap.Config.ARGB_8888);
++	public static void createTextBitmapShadowStroke(String pString,  final String pFontName, final int pFontSize,
++	                                                  final float fontTintR, final float fontTintG, final float fontTintB,
++	                                                  final int pAlignment, final int pWidth, final int pHeight, final boolean shadow,
++	                                                  final float shadowDX, final float shadowDY, final float shadowBlur, final boolean stroke,
++	                                                  final float strokeR, final float strokeG, final float strokeB, final float strokeSize) {
++	      
++	  final int horizontalAlignment = pAlignment & 0x0F;
++	  final int verticalAlignment   = (pAlignment >> 4) & 0x0F;
++
++	  pString = Cocos2dxBitmap.refactorString(pString);
++	  final Paint paint = Cocos2dxBitmap.newPaint(pFontName, pFontSize, horizontalAlignment);
++	  System.out.println("AAAASDFASDFASDF1");
++	  /**
++	  * if the first word width less than designed width,It means no words to show
++	  */
++	  if(0 != pWidth)
++	  {
++	      final int firstWordWidth = (int) Math.ceil(paint.measureText(pString, 0,1));
++	      if ( firstWordWidth > pWidth)
++	      {
++	          Log.w("createTextBitmapShadowStroke warning:","the input width is less than the width of the pString's first word\n");
++	          return;
++	      }
++	  }
++	  System.out.println("AAAASDFASDFASDF2=shadowDX = "+ shadowDX + ",shadowDY = "+shadowDY +",shadowBlur = "+ shadowBlur );
++	  // set the paint color
++	  paint.setARGB(255, (int)(255.0 * fontTintR), (int)(255.0 * fontTintG), (int)(255.0 * fontTintB));
++
++	  final TextProperty textProperty = Cocos2dxBitmap.computeTextProperty(pString, pWidth, pHeight, paint);
++	  final int bitmapTotalHeight = (pHeight == 0 ? textProperty.mTotalHeight: pHeight);
++	  
++	  // padding needed when using shadows (not used otherwise)
++	  float bitmapPaddingX   = 0.0f;
++	  float bitmapPaddingY   = 0.0f;
++	  float renderTextDeltaX = 0.0f;
++	  float renderTextDeltaY = 0.0f;
++	  System.out.println("AAAASDFASDFASDF3,shadow is "+ shadow);
++	  if ( shadow ) {
++		 System.out.print("print the shadow!!!!!!!!!!!!");
++		int shadowColor = 0xff7d7d7d;
+ 		
+-		final Canvas canvas = new Canvas(bitmap);
++		paint.setShadowLayer(0.6f, shadowDX, shadowDY, shadowColor);
+ 
+-		/* Draw string. */
+-		final FontMetricsInt fontMetricsInt = paint.getFontMetricsInt();
+-		
+-		int x = 0;
+-		int y = Cocos2dxBitmap.computeY(fontMetricsInt, pHeight, textProperty.mTotalHeight, verticalAlignment);
+-		
+-		final String[] lines = textProperty.mLines;
+-		
+-		for (final String line : lines) {
+-			
+-			x = Cocos2dxBitmap.computeX(line, textProperty.mMaxWidth, horizontalAlignment);
+-			canvas.drawText(line, x + renderTextDeltaX, y + renderTextDeltaY, paint);
+-			y += textProperty.mHeightPerLine;
+-			
+-		}
+-		 
+-		// draw again with stroke on if needed 
+-		if ( stroke ) {
+-			
+-			final Paint paintStroke = Cocos2dxBitmap.newPaint(pFontName, pFontSize, horizontalAlignment);
+-			paintStroke.setStyle(Paint.Style.STROKE);
+-			paintStroke.setStrokeWidth(strokeSize * 0.5f);
+-			paintStroke.setARGB(255, (int)strokeR * 255, (int)strokeG * 255, (int)strokeB * 255);
+-			
+-			x = 0;
+-			y = Cocos2dxBitmap.computeY(fontMetricsInt, pHeight, textProperty.mTotalHeight, verticalAlignment);
+-			final String[] lines2 = textProperty.mLines;
+-			
+-			for (final String line : lines2) {
+-				
+-				x = Cocos2dxBitmap.computeX(line, textProperty.mMaxWidth, horizontalAlignment);
+-				canvas.drawText(line, x + renderTextDeltaX, y + renderTextDeltaY, paintStroke);
+-				y += textProperty.mHeightPerLine;
++		bitmapPaddingX = Math.abs(shadowDX);
++		bitmapPaddingY = Math.abs(shadowDY);
+ 				
+-			}
+-			
++		if ( shadowDX < 0.0 )
++		{
++			renderTextDeltaX = bitmapPaddingX;
+ 		}
+ 		
+-		Cocos2dxBitmap.initNativeObject(bitmap);
++		if ( shadowDY < 0.0 )
++		{
++			renderTextDeltaY = 	bitmapPaddingY;
++		}
++	  }
++	  if (0 == textProperty.mMaxWidth || 0 == bitmapTotalHeight)
++	  {
++	      Log.w("createTextBitmapShadowStroke warning:","textProperty MaxWidth is 0 or bitMapTotalHeight is 0\n");
++	      return;
++	  }
++
++	  final Bitmap bitmap = Bitmap.createBitmap(textProperty.mMaxWidth + (int)bitmapPaddingX,
++	          bitmapTotalHeight + (int)bitmapPaddingY, Bitmap.Config.ARGB_8888);
++	  
++	  final Canvas canvas = new Canvas(bitmap);
++
++	  /* Draw string. */
++	  final FontMetricsInt fontMetricsInt = paint.getFontMetricsInt();
++	  
++	  // draw again with stroke on if needed 
++	  if ( stroke ) {
++	      
++	      final Paint paintStroke = Cocos2dxBitmap.newPaint(pFontName, pFontSize, horizontalAlignment);
++	      paintStroke.setStyle(Paint.Style.STROKE);
++	      paintStroke.setStrokeWidth(strokeSize);
++	      paintStroke.setARGB(255, (int)strokeR * 255, (int)strokeG * 255, (int)strokeB * 255);
++	      
++	      int x = 0;
++	      int y = Cocos2dxBitmap.computeY(fontMetricsInt, pHeight, textProperty.mTotalHeight, verticalAlignment);
++	      final String[] lines2 = textProperty.mLines;
++	      
++	      for (final String line : lines2) {
++	          
++	          x = Cocos2dxBitmap.computeX(line, textProperty.mMaxWidth, horizontalAlignment);
++	          canvas.drawText(line, x + renderTextDeltaX, y + renderTextDeltaY, paintStroke);
++	          canvas.drawText(line, x + renderTextDeltaX, y + renderTextDeltaY, paint);
++	          y += textProperty.mHeightPerLine;
++	          
++	      }
++	      
++	  }
++	  else
++	  {
++	      int x = 0;
++	      int y = Cocos2dxBitmap.computeY(fontMetricsInt, pHeight, textProperty.mTotalHeight, verticalAlignment);
++	      
++	      final String[] lines = textProperty.mLines;
++	      
++	      for (final String line : lines) {
++	          
++	          x = Cocos2dxBitmap.computeX(line, textProperty.mMaxWidth, horizontalAlignment);
++	          canvas.drawText(line, x + renderTextDeltaX, y + renderTextDeltaY, paint);
++	          y += textProperty.mHeightPerLine;
++	          
++	      }
++	  }
++	  
++	  Cocos2dxBitmap.initNativeObject(bitmap);
+ 	}
+ 
+ 	private static Paint newPaint(final String pFontName, final int pFontSize,
+@@ -199,7 +221,7 @@ public class Cocos2dxBitmap {
+ 		paint.setAntiAlias(true);
+ 
+ 		/* Set type face for paint, now it support .ttf file. */
+-		if (pFontName.endsWith(".ttf")) {
++		if (pFontName.endsWith(".ttf") || pFontName.endsWith(".TTF")) {
+ 			try {
+ 				final Typeface typeFace = Cocos2dxTypefaces.get(
+ 						Cocos2dxBitmap.sContext, pFontName);
+diff --git a/lib/cocos2d-x/cocos2dx/platform/ios/CCImage.mm b/lib/cocos2d-x/cocos2dx/platform/ios/CCImage.mm
+index 4768624..9c83460 100644
+--- a/lib/cocos2d-x/cocos2dx/platform/ios/CCImage.mm
++++ b/lib/cocos2d-x/cocos2dx/platform/ios/CCImage.mm
+@@ -221,6 +221,19 @@ static CGSize _calculateStringSize(NSString *str, id font, CGSize *constrainSize
+     return dim;
+ }
+ 
++static bool s_isIOS7OrHigher = false;
++
++static inline void lazyCheckIOS7()
++{
++    static bool isInited = false;
++    if (!isInited)
++    {
++        s_isIOS7OrHigher = [[[UIDevice currentDevice] systemVersion] compare:@"7.0" options:NSNumericSearch] != NSOrderedAscending;
++        isInited = true;
++    }
++}
++
++
+ // refer CCImage::ETextAlign
+ #define ALIGN_TOP    1
+ #define ALIGN_CENTER 3
+@@ -228,29 +241,32 @@ static CGSize _calculateStringSize(NSString *str, id font, CGSize *constrainSize
+ 
+ static bool _initWithString(const char * pText, cocos2d::CCImage::ETextAlign eAlign, const char * pFontName, int nSize, tImageInfo* pInfo)
+ {
++    // lazy check whether it is iOS7 device
++    lazyCheckIOS7();
++
+     bool bRet = false;
+-    do 
++    do
+     {
+         CC_BREAK_IF(! pText || ! pInfo);
+-        
++
+         NSString * str          = [NSString stringWithUTF8String:pText];
+         NSString * fntName      = [NSString stringWithUTF8String:pFontName];
+-        
++
+         CGSize dim, constrainSize;
+-        
++
+         constrainSize.width     = pInfo->width;
+         constrainSize.height    = pInfo->height;
+-        
++
+         // On iOS custom fonts must be listed beforehand in the App info.plist (in order to be usable) and referenced only the by the font family name itself when
+         // calling [UIFont fontWithName]. Therefore even if the developer adds 'SomeFont.ttf' or 'fonts/SomeFont.ttf' to the App .plist, the font must
+         // be referenced as 'SomeFont' when calling [UIFont fontWithName]. Hence we strip out the folder path components and the extension here in order to get just
+         // the font family name itself. This stripping step is required especially for references to user fonts stored in CCB files; CCB files appear to store
+         // the '.ttf' extensions when referring to custom fonts.
+         fntName = [[fntName lastPathComponent] stringByDeletingPathExtension];
+-        
++
+         // create the font   
+         id font = [UIFont fontWithName:fntName size:nSize];
+-        
++
+         if (font)
+         {
+             dim = _calculateStringSize(str, font, &constrainSize);
+@@ -261,7 +277,7 @@ static bool _initWithString(const char * pText, cocos2d::CCImage::ETextAlign eAl
+             {
+                 font = [UIFont systemFontOfSize:nSize];
+             }
+-                
++
+             if (font)
+             {
+                 dim = _calculateStringSize(str, font, &constrainSize);
+@@ -269,7 +285,7 @@ static bool _initWithString(const char * pText, cocos2d::CCImage::ETextAlign eAl
+         }
+ 
+         CC_BREAK_IF(! font);
+-        
++
+         // compute start point
+         int startH = 0;
+         if (constrainSize.height > dim.height)
+@@ -284,12 +300,12 @@ static bool _initWithString(const char * pText, cocos2d::CCImage::ETextAlign eAl
+             {
+                 startH = (constrainSize.height - dim.height) / 2;
+             }
+-            else 
++            else
+             {
+                 startH = constrainSize.height - dim.height;
+             }
+         }
+-        
++
+         // adjust text rect
+         if (constrainSize.width > 0 && constrainSize.width > dim.width)
+         {
+@@ -299,34 +315,33 @@ static bool _initWithString(const char * pText, cocos2d::CCImage::ETextAlign eAl
+         {
+             dim.height = constrainSize.height;
+         }
+-        
++
++
+         // compute the padding needed by shadow and stroke
+-        float shadowPaddingX = 0.0f;
+-        float shadowPaddingY = 0.0f;
+-        
+-        float strokePadding = 0.0f;
++        float shadowStrokePaddingX = 0.0f;
++        float shadowStrokePaddingY = 0.0f;
++
+         if ( pInfo->hasStroke )
+         {
+-            strokePadding = ceilf(pInfo->strokeSize * 2);
++            shadowStrokePaddingX = ceilf(pInfo->strokeSize);
++            shadowStrokePaddingY = ceilf(pInfo->strokeSize);
+         }
+ 
+-//        pInfo->hasShadow = true;
+-//        pInfo->shadowOffset.width = 2;
+-//        pInfo->shadowOffset.height = -4;
+-        
+         if ( pInfo->hasShadow )
+         {
+-            shadowPaddingX = std::max(shadowPaddingX, (float)abs(pInfo->shadowOffset.width));
+-            shadowPaddingY = std::max(shadowPaddingY, (float)abs(pInfo->shadowOffset.height));
++                    CCLOG("pInfo->hasShadow is true!!!!!!!!,%d",shadowStrokePaddingX);
++            shadowStrokePaddingX = std::max(shadowStrokePaddingX, (float)abs(pInfo->shadowOffset.width));
++            shadowStrokePaddingY = std::max(shadowStrokePaddingY, (float)abs(pInfo->shadowOffset.height));
+         }
+-        
++
+         // add the padding (this could be 0 if no shadow and no stroke)
+-        dim.width  += shadowPaddingX + strokePadding;
+-        dim.height += shadowPaddingY + strokePadding;
+-        
++        dim.width  += shadowStrokePaddingX*2;
++        dim.height += shadowStrokePaddingY*2;
++
++
+         unsigned char* data = new unsigned char[(int)(dim.width * dim.height * 4)];
+         memset(data, 0, (int)(dim.width * dim.height * 4));
+-        
++
+         // draw text
+         CGColorSpaceRef colorSpace  = CGColorSpaceCreateDeviceRGB();
+         CGContextRef context        = CGBitmapContextCreate(data,
+@@ -336,8 +351,9 @@ static bool _initWithString(const char * pText, cocos2d::CCImage::ETextAlign eAl
+                                                             (int)(dim.width) * 4,
+                                                             colorSpace,
+                                                             kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
++
+         CGColorSpaceRelease(colorSpace);
+-        
++
+         if (!context)
+         {
+             delete[] data;
+@@ -345,125 +361,86 @@ static bool _initWithString(const char * pText, cocos2d::CCImage::ETextAlign eAl
+         }
+ 
+         // text color
+-        //CGContextSetRGBFillColor(context, pInfo->tintColorR, pInfo->tintColorG, pInfo->tintColorB, 1);
++        CGContextSetRGBFillColor(context, pInfo->tintColorR, pInfo->tintColorG, pInfo->tintColorB, 1);
+         // move Y rendering to the top of the image
+-        CGContextTranslateCTM(context, 0.0f, (dim.height - shadowPaddingY - strokePadding) );
++        CGContextTranslateCTM(context, 0.0f, (dim.height - shadowStrokePaddingY) );
+         CGContextScaleCTM(context, 1.0f, -1.0f); //NOTE: NSString draws in UIKit referential i.e. renders upside-down compared to CGBitmapContext referential
+-        
++
+         // store the current context
+         UIGraphicsPushContext(context);
+-        
++
+         // measure text size with specified font and determine the rectangle to draw text in
+         unsigned uHoriFlag = eAlign & 0x0f;
+-        UITextAlignment align = (UITextAlignment)((2 == uHoriFlag) ? UITextAlignmentRight
+-                                : (3 == uHoriFlag) ? UITextAlignmentCenter
+-                                : UITextAlignmentLeft);
++        NSTextAlignment align = (NSTextAlignment)((2 == uHoriFlag) ? NSTextAlignmentLeft
++                                : (3 == uHoriFlag) ? NSTextAlignmentCenter
++                                : NSTextAlignmentLeft);
++
++        //------------------------------------------------------------------------------------
++
++        // compute the rect used for rendering the text
++        // based on wether shadows or stroke are enabled
++
++        float textOriginX  = 0;
++        float textOrigingY = startH;
++
++        float textWidth    = dim.width;
++        float textHeight   = dim.height;
++
++        CGRect rect = CGRectMake(textOriginX, textOrigingY, textWidth, textHeight);
++
++        CGContextSetShouldSubpixelQuantizeFonts(context, false);
++
++        CGContextBeginTransparencyLayerWithRect(context, rect, NULL);
+ 
+-        
+-        // take care of stroke if needed
+         if ( pInfo->hasStroke )
+         {
+-//            CGContextSetTextDrawingMode(context, kCGTextFillStroke);
+-//            CGContextSetRGBStrokeColor(context, pInfo->strokeColorR, pInfo->strokeColorG, pInfo->strokeColorB, 1);
+-//
+-//            CGContextSetLineWidth(context, pInfo->strokeSize);
+-        }
+-        
+-        // take care of shadow if needed
+-        if ( pInfo->hasShadow )
+-        {
+-            CGSize offset;
+-            offset.height = pInfo->shadowOffset.height;
+-            offset.width  = pInfo->shadowOffset.width;
+-            if (pInfo->shadowColorR==0 && pInfo->shadowColorG==0 && pInfo->shadowColorB==0)
++            CGContextSetTextDrawingMode(context, kCGTextStroke);
++
++            if(s_isIOS7OrHigher)
+             {
+-                CGContextSetShadow(context, offset, pInfo->shadowBlur);
++                NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
++                paragraphStyle.alignment = align;
++                paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
++                [str drawInRect:rect withAttributes:@{
++                                                      NSFontAttributeName: font,
++                                                      NSStrokeWidthAttributeName: [NSNumber numberWithFloat: pInfo->strokeSize / nSize * 100 ],
++                                                      NSForegroundColorAttributeName:[UIColor colorWithRed:pInfo->tintColorR
++                                                                                                     green:pInfo->tintColorG
++                                                                                                      blue:pInfo->tintColorB
++                                                                                                     alpha:1.0f],
++                                                      NSParagraphStyleAttributeName:paragraphStyle,
++                                                      NSStrokeColorAttributeName: [UIColor colorWithRed:pInfo->strokeColorR
++                                                                                                  green:pInfo->strokeColorG
++                                                                                                   blue:pInfo->strokeColorB
++                                                                                                  alpha:1.0f]
++                                                      }
++                 ];
++
++                [paragraphStyle release];
+             }
+             else
+             {
+-                // create a colorful shadow
+-                CGColorSpaceRef colorSpace  = CGColorSpaceCreateDeviceRGB();
+-                // r, g, b, a
+-                CGFloat colorArr[4] = {pInfo->shadowColorR, pInfo->shadowColorG, pInfo->shadowColorB, pInfo->shadowOpacity};
+-                CGColorRef shadowColorRef = CGColorCreate(colorSpace, colorArr);
+-                CGContextSetShadowWithColor(context, offset, 0, shadowColorRef);
+-                CGColorRelease (shadowColorRef);
+-                CGColorSpaceRelease (colorSpace);
+-            }
+-        }
+-        
+-        
+-        
+-        // normal fonts
+-        //if( [font isKindOfClass:[UIFont class] ] )
+-        //{
+-        //    [str drawInRect:CGRectMake(0, startH, dim.width, dim.height) withFont:font lineBreakMode:(UILineBreakMode)UILineBreakModeWordWrap alignment:align];
+-        //}
+-        //else // ZFont class
+-        //{
+-        //    [FontLabelStringDrawingHelper drawInRect:str rect:CGRectMake(0, startH, dim.width, dim.height) withZFont:font lineBreakMode:(UILineBreakMode)UILineBreakModeWordWrap 
+-        ////alignment:align];
+-        //}
+-    
+-        
+-        
+-        // compute the rect used for rendering the text
+-        // based on wether shadows or stroke are enabled
+-        
+-        float textOriginX  = 0.0;
+-        float textOrigingY = 0.0;
+-        
+-        float textWidth    = dim.width  - shadowPaddingX;
+-        float textHeight   = dim.height - shadowPaddingY;
+-        
+-        
+-        if ( pInfo->shadowOffset.width < 0 )
+-        {
+-            textOriginX = shadowPaddingX;
+-        }
+-        else
+-        {
+-            textOriginX = 0.0;
+-        }
+-        
+-        if (pInfo->shadowOffset.height > 0)
+-        {
+-            textOrigingY = startH;
+-        }
+-        else
+-        {
+-            textOrigingY = startH - shadowPaddingY;
+-        }
+-        
+-        
+-        // actually draw the text in the context
+-		// XXX: ios7 casting
+-        //New Code Start
+-        if(pInfo->hasStroke)
+-        {
+-            CGContextSetTextDrawingMode(context, kCGTextStroke);
+-            CGContextSetRGBFillColor(context, pInfo->strokeColorR, pInfo->strokeColorG, pInfo->strokeColorB, 1);
+-            CGContextSetRGBStrokeColor(context, pInfo->strokeColorR, pInfo->strokeColorG, pInfo->strokeColorB, 1);
+-            CGContextSetLineWidth(context, pInfo->strokeSize);
+-            
+-            [str drawInRect:CGRectMake(textOriginX, textOrigingY+1, textWidth, textHeight) withFont:font lineBreakMode:NSLineBreakByWordWrapping alignment:(NSTextAlignment)align];
+-            if ( pInfo->hasShadow )
+-            {
+-                CGContextSetShadow(context, CGSizeMake(0, 0), 0);
++                CGContextSetRGBStrokeColor(context, pInfo->strokeColorR, pInfo->strokeColorG, pInfo->strokeColorB, 1);
++                CGContextSetLineWidth(context, pInfo->strokeSize);
++
++                //original code that was not working in iOS 7
++                [str drawInRect: rect withFont:font lineBreakMode:NSLineBreakByWordWrapping alignment:align];
+             }
+         }
+-        
+-        CGContextSetRGBFillColor(context, pInfo->tintColorR, pInfo->tintColorG, pInfo->tintColorB, 1);
++
+         CGContextSetTextDrawingMode(context, kCGTextFill);
+-        [str drawInRect:CGRectMake(textOriginX, textOrigingY, textWidth, textHeight) withFont:font lineBreakMode:NSLineBreakByWordWrapping alignment:(NSTextAlignment)align];
+-        
+-        //New Code End
++
++        // actually draw the text in the context
++        [str drawInRect: rect withFont:font lineBreakMode:NSLineBreakByWordWrapping alignment:align];
++
++        CGContextEndTransparencyLayer(context);
++
+         // pop the context
+         UIGraphicsPopContext();
+-        
++
+         // release the context
+         CGContextRelease(context);
+-               
++
+         // output params
+         pInfo->data                 = data;
+         pInfo->hasAlpha             = true;
+@@ -472,12 +449,11 @@ static bool _initWithString(const char * pText, cocos2d::CCImage::ETextAlign eAl
+         pInfo->width                = dim.width;
+         pInfo->height               = dim.height;
+         bRet                        = true;
+-        
++
+     } while (0);
+ 
+     return bRet;
+ }
+-
+ NS_CC_BEGIN
+ 
+ CCImage::CCImage()
+-- 
+1.8.3.4
+

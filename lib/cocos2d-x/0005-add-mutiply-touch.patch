@@ -1,0 +1,296 @@
+From 52ba4022fcfd9a0b178185128cabf4f7a66e668f Mon Sep 17 00:00:00 2001
+From: Jolie Hou <lhou@taplion.com>
+Date: Mon, 24 Mar 2014 21:49:53 +0800
+Subject: [PATCH 5/9] add mutiply touch
+
+---
+ lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp       |  22 +++-
+ .../layers_scenes_transitions_nodes/CCScene.cpp    | 125 ++++++++++++++++++++-
+ .../layers_scenes_transitions_nodes/CCScene.h      |  10 ++
+ lib/cocos2d-x/cocos2dx/textures/CCTexture2D.cpp    |  21 ++--
+ 4 files changed, 169 insertions(+), 9 deletions(-)
+
+diff --git a/lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp b/lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp
+index c8e1013..d213c11 100644
+--- a/lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp
++++ b/lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp
+@@ -1568,7 +1568,15 @@ void CCNode::registerWithTouchDispatcher()
+     CCScene *scene = getScene();
+     if (scene)
+     {
+-        scene->addTouchableNode(this);
++        if (m_pScriptTouchHandlerEntry){
++            bool muti = m_pScriptTouchHandlerEntry->isMultiTouches();
++            if (muti){
++                scene->addStandardTouchableNode(this);
++            }
++        }else{
++            scene->addTouchableNode(this);
++        }
++
+     }
+ }
+ 
+@@ -1579,6 +1587,7 @@ void CCNode::unregisterWithTouchDispatcher()
+     if (scene)
+     {
+         scene->removeTouchableNode(this);
++        scene->removeStandardTouchableNode(this);
+     }
+ }
+ 
+@@ -1586,6 +1595,17 @@ void CCNode::registerScriptTouchHandler(int nHandler, bool bIsMultiTouches, int
+ {
+     unregisterScriptTouchHandler();
+     m_pScriptTouchHandlerEntry = CCTouchScriptHandlerEntry::create(nHandler, bIsMultiTouches, nPriority, bSwallowsTouches);
++    if (m_pScriptTouchHandlerEntry){
++        bool muti = m_pScriptTouchHandlerEntry->isMultiTouches();
++        if (muti){
++            CCScene *scene = getScene();
++            if(scene){
++                scene->addStandardTouchableNode(this);
++                scene->removeTouchableNode(this);
++            }
++
++        }
++    }
+     m_pScriptTouchHandlerEntry->retain();
+ }
+ 
+diff --git a/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp b/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp
+index e3b22db..a6cc823 100644
+--- a/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp
++++ b/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp
+@@ -35,11 +35,18 @@ NS_CC_BEGIN
+ CCScene::CCScene()
+ : m_touchableNodes(NULL)
+ , m_touchTargets(NULL)
++,m_touchableStandardNodes(NULL)
++,m_touchStandardTargets(NULL)
+ {
+     m_touchableNodes = CCArray::createWithCapacity(100);
+     m_touchableNodes->retain();
+     m_touchTargets = CCArray::createWithCapacity(10);
+     m_touchTargets->retain();
++    m_touchableStandardNodes = CCArray::createWithCapacity(10);
++    m_touchableStandardNodes->retain();
++    m_touchStandardTargets = CCArray::createWithCapacity(10);
++    m_touchStandardTargets -> retain();
++    
+     m_bIgnoreAnchorPointForPosition = true;
+     setAnchorPoint(ccp(0.5f, 0.5f));
+ }
+@@ -48,6 +55,8 @@ CCScene::~CCScene()
+ {
+     CC_SAFE_RELEASE(m_touchableNodes);
+     CC_SAFE_RELEASE(m_touchTargets);
++    CC_SAFE_RELEASE(m_touchableStandardNodes);
++    CC_SAFE_RELEASE(m_touchStandardTargets);
+ }
+ 
+ bool CCScene::init()
+@@ -91,11 +100,36 @@ void CCScene::addTouchableNode(CCNode *node)
+         }
+     }
+ }
++void CCScene::addStandardTouchableNode(CCNode *node)
++{
++    if (!m_touchableStandardNodes->containsObject(node))
++    {
++        m_touchableStandardNodes->addObject(node);
++        
++        this->setTouchMode(kCCTouchesAllAtOnce);
++        
++    }
++    CCTouchDispatcher* pDispatcher = CCDirector::sharedDirector()->getTouchDispatcher();
++    pDispatcher->addStandardDelegate(this, 0);
++
++}
++void CCScene::removeStandardTouchableNode(CCNode *node)
++{
++    if (!m_touchableStandardNodes->containsObject(node))
++    {
++        m_touchableStandardNodes->removeObject(node);
++        
++    }
++    if (m_touchableStandardNodes->count() == 0 )
++    {
++        CCTouchDispatcher* pDispatcher = CCDirector::sharedDirector()->getTouchDispatcher();
++        pDispatcher->removeDelegate(this);
++    }
++}
+ 
+ void CCScene::removeTouchableNode(CCNode *node)
+ {
+     m_touchableNodes->removeObject(node);
+-//    CCLOG("REMOVE TOUCHABLE NODE: %p", node);
+     if (m_touchableNodes->count() == 0 && isTouchEnabled())
+     {
+         setTouchEnabled(false);
+@@ -211,6 +245,95 @@ void CCScene::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent)
+     m_touchTargets->removeAllObjects();
+ }
+ 
++
++
++void CCScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
++{
++    // remove all touch targets
++    m_touchStandardTargets->removeAllObjects();
++    
++    // check touch targets
++//    const CCPoint p = pTouch->getLocation();
++    CCObject *node;
++    CCNode *touchNode = NULL;
++    CCNode *checkVisibleNode = NULL;
++    bool visible = true;
++    sortAllTouchableNodes(m_touchableStandardNodes);
++    CCARRAY_FOREACH(m_touchableStandardNodes, node)
++    {
++        checkVisibleNode = touchNode = dynamic_cast<CCNode*>(node);
++        
++        // check node is visible
++        visible = true;
++        do
++        {
++            visible = visible && checkVisibleNode->isVisible();
++            checkVisibleNode = checkVisibleNode->getParent();
++        } while (checkVisibleNode && visible);
++        if (!visible) continue;
++
++        touchNode->retain();
++        touchNode->ccTouchesBegan(pTouches, pEvent);
++        touchNode->release();
++        
++    }
++    
++    sortAllTouchableNodes(m_touchStandardTargets);
++   }
++
++
++void CCScene::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
++{
++    CCNode *touchNode = NULL;
++    unsigned int count = m_touchStandardTargets->count();
++    for (unsigned int i = 0; i < count; ++i)
++    {
++        touchNode = dynamic_cast<CCNode*>(m_touchStandardTargets->objectAtIndex(i));
++        if (touchNode->isRunning())
++        {
++            touchNode->ccTouchesMoved(pTouches, pEvent);
++           
++        }
++        else
++        {
++            m_touchStandardTargets->removeObjectAtIndex(i);
++            count--;
++            i--;
++        }
++    }
++}
++
++void CCScene::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
++{
++    CCObject *node;
++    CCNode *touchNode = NULL;
++    CCARRAY_FOREACH(m_touchStandardTargets, node)
++    {
++        touchNode = dynamic_cast<CCNode*>(node);
++        if (touchNode->isRunning())
++        {
++            touchNode->ccTouchesEnded(pTouches, pEvent);
++        }
++    }
++    m_touchStandardTargets->removeAllObjects();
++}
++
++void CCScene::ccTouchesCancelled(CCSet *pTouches, CCEvent *pEvent)
++{
++    CCObject *node;
++    CCNode *touchNode = NULL;
++    CCARRAY_FOREACH(m_touchTargets, node)
++    {
++        touchNode = dynamic_cast<CCNode*>(node);
++        if (touchNode->isRunning())
++        {
++            touchNode->ccTouchesCancelled(pTouches, pEvent);
++        }
++    }
++    m_touchTargets->removeAllObjects();
++}
++
++
+ void CCScene::visit()
+ {
+     g_drawOrder = 0;
+diff --git a/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.h b/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.h
+index d90eee5..8192fae 100644
+--- a/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.h
++++ b/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.h
+@@ -64,6 +64,8 @@ public:
+ 
+     void addTouchableNode(CCNode *node);
+     void removeTouchableNode(CCNode *node);
++    void addStandardTouchableNode(CCNode *node);
++    void removeStandardTouchableNode(CCNode *node);
+ 
+     // default implements are used to call script callback if exist
+     virtual int ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent);
+@@ -71,11 +73,19 @@ public:
+     virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
+     virtual void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent);
+ 
++    // default implements are used to call script callback if exist
++    virtual void ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent);
++    virtual void ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent);
++    virtual void ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent);
++    virtual void ccTouchesCancelled(CCSet *pTouches, CCEvent *pEvent);
++    
+     virtual void visit();
+ 
+ protected:
+     CCArray *m_touchableNodes;
+     CCArray *m_touchTargets;
++    CCArray *m_touchableStandardNodes;
++    CCArray *m_touchStandardTargets;
+ 
+     void sortAllTouchableNodes(CCArray *nodes);
+ };
+diff --git a/lib/cocos2d-x/cocos2dx/textures/CCTexture2D.cpp b/lib/cocos2d-x/cocos2dx/textures/CCTexture2D.cpp
+index bff88d9..60f50d2 100644
+--- a/lib/cocos2d-x/cocos2dx/textures/CCTexture2D.cpp
++++ b/lib/cocos2d-x/cocos2dx/textures/CCTexture2D.cpp
+@@ -970,16 +970,23 @@ ccColor4B CCTexture2D::pixelAt(const CCPoint& pt)
+     //! modified, texture origin point is left top, cocos2d origin point is left bottom
+     //! unsigned int x = pt.x, y = pt.y
+     CCLOG("original x is %f,y is %f",pt.x,pt.y);
+-    CCLOG("pixelsHight is %d",m_uPixelsHigh);
++    CCLOG("pixelsHight is %d,%d",m_uPixelsHigh,m_uPixelsWide);
+ 	unsigned int x = pt.x, y = m_uPixelsHigh - pt.y;
+-    CCLOG("x is %d,y is %d",x,y);
++    CCLOG("m_ePixelFormat is %u,now x is %d,y is %d",m_ePixelFormat,x,y);
++
+ 	if(m_ePixelFormat == kTexture2DPixelFormat_RGBA8888){
+ 		unsigned int *pixel = (unsigned int *)data_;
+-		pixel = pixel + (y * m_uPixelsWide) + x;
+-		c.r = *pixel & 0xff;
+-		c.g = (*pixel >> 8) & 0xff;
+-		c.b = (*pixel >> 16) & 0xff;
+-		c.a = (*pixel >> 24) & 0xff;
++        int delta = (y * m_uPixelsWide) + x;
++		pixel = pixel + delta;
++        CCLOG("length is %d",delta);
++//        CCLOG("pixel is %u",*pixel);
++        c.r = *pixel & 0xff;
++        c.g = (*pixel >> 8) & 0xff;
++        c.b = (*pixel >> 16) & 0xff;
++        c.a = (*pixel >> 24) & 0xff;
++        CCLOG("r,g,b,a is #%02x%02x%02x%02x",c.a,c.r,c.g,c.b);
++        CCLOG("r,g,b,a is %d,%d,%d",c.r,c.g,c.b);
++		
+ 	} else if(m_ePixelFormat == kTexture2DPixelFormat_RGBA4444){
+ 		GLushort *pixel = (GLushort *)data_;
+ 		pixel = pixel + (y * m_uPixelsWide) + x;
+-- 
+1.8.3.4
+

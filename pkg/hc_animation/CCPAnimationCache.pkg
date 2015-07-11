@@ -1,0 +1,39 @@
+struct CCPTexQuads
+{
+    unsigned int width;
+    unsigned int height;
+    unsigned int totalQuadsNum;
+    float* quadsData;
+};
+
+struct CCPAniData
+{
+    unsigned int fps;
+    unsigned int totalFrames;
+    unsigned int* framePartsNum;
+    unsigned int* addedFramePartsNum;
+    bool* binded;
+    CCTextureAtlas* textureAtlas;
+};
+
+class CCPAnimationCache : public CCObject
+{
+    
+    
+    CCPAnimationCache();
+    ~CCPAnimationCache();
+    
+    static CCPAnimationCache* sharedPAnimationCache();   
+    static void purgeSharedPAnimationCache();
+
+    void addAnimation(const char* animationName, const char* fileAniData, const char* fileImage);    
+    
+    CCPAniData* animationForKey(const char* animationName, const char* key);
+    void removeAnimation(const char* animationName, CCPAniData* animation);
+    void removeAnimations(const char* animationName);
+    void removeAnimationForKey(const char* animationName, const char *key);
+    void removeAllAnimations();
+    void removeUnusedAnimations();
+};
+
+

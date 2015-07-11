@@ -1,0 +1,55 @@
+From f9d7534b8617066c074fe2d6aa151fff1cc4b211 Mon Sep 17 00:00:00 2001
+From: Jolie Hou <lhou@taplion.com>
+Date: Thu, 12 Feb 2015 13:35:05 +0800
+Subject: [PATCH] for tmx file
+
+---
+ .../tilemap_parallax_nodes/CCTMXXMLParser.cpp      | 25 ++++++++++++++--------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
+
+diff --git a/lib/cocos2d-x/cocos2dx/tilemap_parallax_nodes/CCTMXXMLParser.cpp b/lib/cocos2d-x/cocos2dx/tilemap_parallax_nodes/CCTMXXMLParser.cpp
+index f26b573..515eece 100644
+--- a/lib/cocos2d-x/cocos2dx/tilemap_parallax_nodes/CCTMXXMLParser.cpp
++++ b/lib/cocos2d-x/cocos2dx/tilemap_parallax_nodes/CCTMXXMLParser.cpp
+@@ -189,6 +189,12 @@ bool CCTMXMapInfo::initWithXML(const char* tmxString, const char* resourcePath)
+ bool CCTMXMapInfo::initWithTMXFile(const char *tmxFile)
+ {
+     internalInit(tmxFile, NULL);
++    std::string fileName = tmxFile;
++    if (fileName.find_last_of("/") != string::npos)
++    {
++        m_sResources = fileName.substr(0, fileName.find_last_of("/"));
++    }
++
+     return parseXMLFile(m_sTMXFileName.c_str());
+ }
+ 
+@@ -470,15 +476,16 @@ void CCTMXMapInfo::startElement(void *ctx, const char *name, const char **atts)
+         // build full path
+         std::string imagename = valueForKey("source", attributeDict);
+ 
+-        if (m_sTMXFileName.find_last_of("/") != string::npos)
+-        {
+-            string dir = m_sTMXFileName.substr(0, m_sTMXFileName.find_last_of("/") + 1);
+-            tileset->m_sSourceImage = dir + imagename;
+-        }
+-        else 
+-        {
+-            tileset->m_sSourceImage = m_sResources + (m_sResources.size() ? "/" : "") + imagename;
+-        }
++//        if (m_sTMXFileName.find_last_of("/") != string::npos)
++//        {
++//            string dir = m_sTMXFileName.substr(0, m_sTMXFileName.find_last_of("/") + 1);
++//            tileset->m_sSourceImage = dir + imagename;
++//        }
++//        else 
++//        {
++//            tileset->m_sSourceImage = m_sResources + (m_sResources.size() ? "/" : "") + imagename;
++//        }
++        tileset->m_sSourceImage = m_sResources + (m_sResources.size() ? "/" : "") + imagename;
+     } 
+     else if (elementName == "data")
+     {
+-- 
+1.8.3.4
+

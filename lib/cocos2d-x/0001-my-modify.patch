@@ -1,0 +1,44 @@
+From b5fae7d99ecc60b721fc6c0e7919009f99a1a41e Mon Sep 17 00:00:00 2001
+From: Jolie Hou <lhou@taplion.com>
+Date: Fri, 22 Nov 2013 12:45:02 +0800
+Subject: [PATCH 1/9] my modify
+
+---
+ .../extensions/CCArmature/animation/CCArmatureAnimation.cpp        | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/lib/cocos2d-x/extensions/CCArmature/animation/CCArmatureAnimation.cpp b/lib/cocos2d-x/extensions/CCArmature/animation/CCArmatureAnimation.cpp
+index 5f04151..05cd1a5 100644
+--- a/lib/cocos2d-x/extensions/CCArmature/animation/CCArmatureAnimation.cpp
++++ b/lib/cocos2d-x/extensions/CCArmature/animation/CCArmatureAnimation.cpp
+@@ -29,7 +29,7 @@ THE SOFTWARE.
+ #include "../utils/CCUtilMath.h"
+ #include "../utils/CCConstValue.h"
+ #include "../datas/CCDatas.h"
+-
++#include "CCLuaEngine.h"
+ 
+ NS_CC_EXT_BEGIN
+ 
+@@ -261,7 +261,8 @@ void CCArmatureAnimation::updateHandler()
+                 m_iNextFrameIndex = m_iDurationTween;
+ 
+                 MovementEventSignal.emit(m_pArmature, START, m_strMovementID.c_str());
+-
++                int scriptHandler = m_pArmature ->getScriptHandler();
++                CCScriptEngineManager::sharedManager()->getScriptEngine()->executeEvent(scriptHandler, "start",m_pArmature);
+                 break;
+             }
+         }
+@@ -273,6 +274,8 @@ void CCArmatureAnimation::updateHandler()
+             m_bIsComplete = true;
+ 
+             MovementEventSignal.emit(m_pArmature, COMPLETE, m_strMovementID.c_str());
++            int scriptHandler = m_pArmature ->getScriptHandler();
++            CCScriptEngineManager::sharedManager()->getScriptEngine()->executeEvent(scriptHandler, "complete",m_pArmature);
+         }
+         break;
+         case ANIMATION_TO_LOOP_FRONT:
+-- 
+1.8.3.4
+

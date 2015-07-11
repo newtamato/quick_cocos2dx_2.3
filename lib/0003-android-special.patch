@@ -1,0 +1,34 @@
+From 024b6f61c00bd6194f6582b709cbd082376b9206 Mon Sep 17 00:00:00 2001
+From: Jolie Hou <lhou@taplion.com>
+Date: Sun, 1 Mar 2015 19:50:45 +0800
+Subject: [PATCH 3/3] android special
+
+---
+ lib/cocos2d-x/extensions/CCBReader/CCLabelTTFLoader.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/lib/cocos2d-x/extensions/CCBReader/CCLabelTTFLoader.cpp b/lib/cocos2d-x/extensions/CCBReader/CCLabelTTFLoader.cpp
+index ad4722a..70bb2e4 100644
+--- a/lib/cocos2d-x/extensions/CCBReader/CCLabelTTFLoader.cpp
++++ b/lib/cocos2d-x/extensions/CCBReader/CCLabelTTFLoader.cpp
+@@ -41,12 +41,15 @@ void CCLabelTTFLoader::onHandlePropTypeBlendFunc(CCNode * pNode, CCNode * pParen
+ void CCLabelTTFLoader::onHandlePropTypeFontTTF(CCNode * pNode, CCNode * pParent, const char * pPropertyName, const char * pFontTTF, CCBReader * pCCBReader) {
+ //    CCLOG("pPropertyName is %s, and font file is %s", pPropertyName,pFontTTF);
+     if(strcmp(pPropertyName, PROPERTY_FONTNAME) == 0) {
+-        ((CCLabelTTF *)pNode)->setFontName(pFontTTF);
++        
+         TargetPlatform target = CCApplication::sharedApplication()->getTargetPlatform();
+         if ( target != kTargetAndroid ){
+             ((CCLabelTTF *)pNode)->enableStroke(ccc3(0,0,0),3.0,false);    
++            ((CCLabelTTF *)pNode)->setFontName(pFontTTF);
++        }else{
++            ((CCLabelTTF *)pNode)->enableStroke(ccc3(0,0,0),0.3,false);    
++            ((CCLabelTTF *)pNode)->setFontName("assets/font/FZZhengHeiS-M-GB2.ttf");
+         }
+-        
+     } else {
+         CCNodeLoader::onHandlePropTypeFontTTF(pNode, pParent, pPropertyName, pFontTTF, pCCBReader);
+     }
+-- 
+1.8.3.4
+

@@ -1,0 +1,28 @@
+
+#define kPinchThreshold 2.0
+
+typedef enum {
+    kPinchGestureRecognizerTypeClose    = 1 << 0,
+    kPinchGestureRecognizerTypeOpen     = 1 << 1
+} CCPinchGestureRecognizerType;
+
+//this class is used for storing information about the pinch gesture
+class CCPinch : public cocos2d::CCObject
+{
+
+    bool init() {return true;}
+	static CCPinch* create();
+    CCPinchGestureRecognizerType type;
+};
+
+class CCPinchGestureRecognizer : public CCGestureRecognizer
+{
+
+    bool init();
+    ~CCPinchGestureRecognizer();
+    static CCPinchGestureRecognizer* create();
+    virtual bool ccTouchBegan(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+    virtual void ccTouchMoved(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+    virtual void ccTouchEnded(cocos2d::CCTouch * pTouch, cocos2d::CCEvent * pEvent);
+
+};

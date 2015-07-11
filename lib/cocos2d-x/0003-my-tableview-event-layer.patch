@@ -1,0 +1,31 @@
+From 931504f1911c821859314a3840c25f35016d3656 Mon Sep 17 00:00:00 2001
+From: Jolie Hou <lhou@taplion.com>
+Date: Mon, 10 Mar 2014 10:30:44 +0800
+Subject: [PATCH 3/9] my tableview event layer
+
+---
+ lib/cocos2d-x/extensions/GUI/CCScrollView/CCScrollView.cpp | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/lib/cocos2d-x/extensions/GUI/CCScrollView/CCScrollView.cpp b/lib/cocos2d-x/extensions/GUI/CCScrollView/CCScrollView.cpp
+index af855e6..89a63c2 100644
+--- a/lib/cocos2d-x/extensions/GUI/CCScrollView/CCScrollView.cpp
++++ b/lib/cocos2d-x/extensions/GUI/CCScrollView/CCScrollView.cpp
+@@ -138,7 +138,13 @@ void CCScrollView::registerWithTouchDispatcher()
+     int pro = CCLayer::getTouchPriority();
+     CCLOG("CCScrollView pro is %i,this.uid is %i, this.luaId is %i",pro,this->m_uID,this->m_nLuaID);
+     CCLOG("CCScrollView delegate is %i,luaId is %i",this->m_uID,this->m_nLuaID);
+-    CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(this, CCLayer::getTouchPriority(), false);
++//    CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(this, CCLayer::getTouchPriority(), false);
++    CCScene *scene = getScene();
++    if (scene)
++    {
++        scene->addTouchableNode(this);
++    }
++    
+ }
+ 
+ bool CCScrollView::isNodeVisible(CCNode* node)
+-- 
+1.8.3.4
+

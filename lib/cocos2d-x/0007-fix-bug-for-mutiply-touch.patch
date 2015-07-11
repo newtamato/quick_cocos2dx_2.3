@@ -1,0 +1,31 @@
+From 80cf597e8e8312b4fa98abcd458bfb1f9ec1ed26 Mon Sep 17 00:00:00 2001
+From: Jolie Hou <lhou@taplion.com>
+Date: Tue, 25 Mar 2014 16:49:20 +0800
+Subject: [PATCH 7/9] fix bug for mutiply touch
+
+---
+ lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp b/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp
+index 77fcff0..d7a998e 100644
+--- a/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp
++++ b/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp
+@@ -270,11 +270,13 @@ void CCScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
+             checkVisibleNode = checkVisibleNode->getParent();
+         } while (checkVisibleNode && visible);
+         if (!visible) continue;
+-
++        
+         touchNode->retain();
++        m_touchStandardTargets->addObject(touchNode);
+         touchNode->ccTouchesBegan(pTouches, pEvent);
+         touchNode->release();
+         
++        
+     }
+     
+     sortAllTouchableNodes(m_touchStandardTargets);
+-- 
+1.8.3.4
+

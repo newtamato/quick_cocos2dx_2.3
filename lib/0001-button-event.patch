@@ -1,0 +1,25 @@
+From 4d372074e0e98c29fa28afa49e7131d2a8c1e9f4 Mon Sep 17 00:00:00 2001
+From: Jolie Hou <lhou@taplion.com>
+Date: Sun, 1 Mar 2015 19:49:47 +0800
+Subject: [PATCH 1/3] button event
+
+---
+ framework/cc/ui/UIButton.lua | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/framework/cc/ui/UIButton.lua b/framework/cc/ui/UIButton.lua
+index c13906e..522ca80 100644
+--- a/framework/cc/ui/UIButton.lua
++++ b/framework/cc/ui/UIButton.lua
+@@ -178,7 +178,7 @@ function UIButton:onButtonPressed(callback)
+ end
+ 
+ function UIButton:addButtonReleaseEventListener(callback)
+-    return self:addEventListener(UIButton.RELEASE_EVENT, callback)
++    return self:addEventListener(UIButton.CLICKED_EVENT, callback)
+ end
+ 
+ function UIButton:onButtonRelease(callback)
+-- 
+1.8.3.4
+

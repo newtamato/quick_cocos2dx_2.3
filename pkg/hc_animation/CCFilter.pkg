@@ -1,0 +1,32 @@
+class CCFilter : public CCNode
+{
+   
+    CCFilter(CCNode* pTarget);
+    void draw(void);
+    void update(float dt);
+    
+    /** Create an action */
+    //TO-DO add max size & bias
+    static CCFilter* create(CCNode* pTarget);
+};
+
+class CCMonoChromeFilter : public CCFilter
+{
+    CCMonoChromeFilter(CCNode* pTarget) : CCFilter(pTarget){};
+    static CCMonoChromeFilter* create(CCNode* pTarget);
+};
+
+class CCEmbossFilter : public CCFilter
+{    
+    CCEmbossFilter(CCNode* pTarget, int xOffset = 1, int yOffset = 1) : CCFilter(pTarget){this->setOffset(xOffset, yOffset);};
+    void setOffset(int x, int y);
+    static CCEmbossFilter* create(CCNode* pTarget);
+};
+
+class CCGaussianBlurFilter : public CCFilter
+{    
+    CCGaussianBlurFilter(CCNode* pTarget, float xOffset = 1.0, float yOffset = 1.0) : CCFilter(pTarget){this->setOffset(xOffset, yOffset);};
+    void setOffset(float x, float y);
+    static CCGaussianBlurFilter* create(CCNode* pTarget);
+};
+

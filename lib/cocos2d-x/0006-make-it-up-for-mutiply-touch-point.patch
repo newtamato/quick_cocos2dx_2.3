@@ -1,0 +1,90 @@
+From 9596768343b34db87a17ffc76f71f7349cd606aa Mon Sep 17 00:00:00 2001
+From: Jolie Hou <lhou@taplion.com>
+Date: Tue, 25 Mar 2014 12:37:32 +0800
+Subject: [PATCH 6/9] make it up for mutiply touch point
+
+---
+ lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp                       | 2 ++
+ lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCLayer.cpp | 3 ++-
+ lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp | 7 +++----
+ lib/cocos2d-x/cocos2dx/touch_dispatcher/CCTouchDispatcher.cpp      | 3 ++-
+ 4 files changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp b/lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp
+index d213c11..554fbef 100644
+--- a/lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp
++++ b/lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp
+@@ -1572,6 +1572,8 @@ void CCNode::registerWithTouchDispatcher()
+             bool muti = m_pScriptTouchHandlerEntry->isMultiTouches();
+             if (muti){
+                 scene->addStandardTouchableNode(this);
++            }else{
++                scene->addTouchableNode(this);
+             }
+         }else{
+             scene->addTouchableNode(this);
+diff --git a/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCLayer.cpp b/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCLayer.cpp
+index f0f14e9..1893bad 100644
+--- a/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCLayer.cpp
++++ b/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCLayer.cpp
+@@ -105,7 +105,7 @@ void CCLayer::registerWithTouchDispatcher()
+ 	    if (m_pScriptTouchHandlerEntry->isMultiTouches())
+ 	    {
+ 	       pDispatcher->addStandardDelegate(this, 0);
+-	       LUALOG("[LUA] Add multi-touches event handler: %d", m_pScriptTouchHandlerEntry->getHandler());
++	       CCLOG("[LUA] Add multi-touches event handler: %d", m_pScriptTouchHandlerEntry->getHandler());
+ 	    }
+ 	    else
+ 	    {
+@@ -120,6 +120,7 @@ void CCLayer::registerWithTouchDispatcher()
+         if( m_eTouchMode == kCCTouchesAllAtOnce ) {
+             pDispatcher->addStandardDelegate(this, 0);
+         } else {
++            pDispatcher->addStandardDelegate(this, 0);
+             pDispatcher->addTargetedDelegate(this, m_nTouchPriority, true);
+         }
+     }
+diff --git a/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp b/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp
+index a6cc823..77fcff0 100644
+--- a/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp
++++ b/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCScene.cpp
+@@ -106,11 +106,10 @@ void CCScene::addStandardTouchableNode(CCNode *node)
+     {
+         m_touchableStandardNodes->addObject(node);
+         
+-        this->setTouchMode(kCCTouchesAllAtOnce);
++//        this->setTouchMode(kCCTouchesAllAtOnce);
+         
+     }
+-    CCTouchDispatcher* pDispatcher = CCDirector::sharedDirector()->getTouchDispatcher();
+-    pDispatcher->addStandardDelegate(this, 0);
++  
+ 
+ }
+ void CCScene::removeStandardTouchableNode(CCNode *node)
+@@ -123,7 +122,7 @@ void CCScene::removeStandardTouchableNode(CCNode *node)
+     if (m_touchableStandardNodes->count() == 0 )
+     {
+         CCTouchDispatcher* pDispatcher = CCDirector::sharedDirector()->getTouchDispatcher();
+-        pDispatcher->removeDelegate(this);
++//        pDispatcher->removeDelegate(this);
+     }
+ }
+ 
+diff --git a/lib/cocos2d-x/cocos2dx/touch_dispatcher/CCTouchDispatcher.cpp b/lib/cocos2d-x/cocos2dx/touch_dispatcher/CCTouchDispatcher.cpp
+index f34a793..2307999 100644
+--- a/lib/cocos2d-x/cocos2dx/touch_dispatcher/CCTouchDispatcher.cpp
++++ b/lib/cocos2d-x/cocos2dx/touch_dispatcher/CCTouchDispatcher.cpp
+@@ -389,7 +389,8 @@ void CCTouchDispatcher::touches(CCSet *pTouches, CCEvent *pEvent, unsigned int u
+ 
+                 if (bClaimed && pHandler->isSwallowsTouches())
+                 {
+-                    if (bNeedsMutableSet)
++                    //lhou
++                    if (bNeedsMutableSet == false)
+                     {
+                         pMutableTouches->removeObject(pTouch);
+                     }
+-- 
+1.8.3.4
+

@@ -1,0 +1,19 @@
+enum Endian
+{
+    BIG_ENDIAN_MODE,
+    LITTLE_ENDIAN_MODE
+};
+
+class BufferReader: public CCObject 
+{ 
+    BufferReader(unsigned char* buffer, int size, Endian endian);
+    ~BufferReader();
+    
+    char readByte();
+	short readShort();
+	int readInt();
+    float readFloat();
+    char* readString();
+      
+};
+

@@ -1,0 +1,111 @@
+enum Endian
+{
+    BIG_ENDIAN_MODE,
+    LITTLE_ENDIAN_MODE
+};
+
+class BufferReader: public CCObject 
+{ 
+    BufferReader(unsigned char* buffer, int size, Endian endian);
+    ~BufferReader();
+    
+    char readByte();
+	short readShort();
+	int readInt();
+    float readFloat();
+    char* readString();
+      
+};
+
+class CCFilter : public CCNode
+{
+   
+    CCFilter(CCNode* pTarget);
+    void draw(void);
+    void update(float dt);
+    
+    /** Create an action */
+    //TO-DO add max size & bias
+    static CCFilter* create(CCNode* pTarget);
+};
+
+class CCMonoChromeFilter : public CCFilter
+{
+    CCMonoChromeFilter(CCNode* pTarget) : CCFilter(pTarget){};
+    static CCMonoChromeFilter* create(CCNode* pTarget);
+};
+
+class CCEmbossFilter : public CCFilter
+{    
+    CCEmbossFilter(CCNode* pTarget, int xOffset = 1, int yOffset = 1) : CCFilter(pTarget){this->setOffset(xOffset, yOffset);};
+    void setOffset(int x, int y);
+    static CCEmbossFilter* create(CCNode* pTarget);
+};
+
+class CCGaussianBlurFilter : public CCFilter
+{    
+    CCGaussianBlurFilter(CCNode* pTarget, float xOffset = 1.0, float yOffset = 1.0) : CCFilter(pTarget){this->setOffset(xOffset, yOffset);};
+    void setOffset(float x, float y);
+    static CCGaussianBlurFilter* create(CCNode* pTarget);
+};
+
+class CCPAnimation : public CCNode
+{
+   
+    CCPAnimation();
+    ~CCPAnimation();
+    
+    
+    void setAniData(CCPAniData* aniData){this->m_pAniData = aniData;this->m_frameInterval = 1.0 / aniData->fps;};
+    
+    void play();
+    void stop();
+    void gotoAndPlay(int frame);    
+	void gotoAndStop(int frame);
+    void nextFrame();
+    void prevFrame();
+    
+    static CCPAnimation* create(const char* animationName, const char* key);
+};
+
+
+struct CCPTexQuads
+{
+    unsigned int width;
+    unsigned int height;
+    unsigned int totalQuadsNum;
+    float* quadsData;
+};
+
+struct CCPAniData
+{
+    unsigned int fps;
+    unsigned int totalFrames;
+    unsigned int* framePartsNum;
+    unsigned int* addedFramePartsNum;
+    bool* binded;
+    CCTextureAtlas* textureAtlas;
+};
+
+class CCPAnimationCache : public CCObject
+{
+    
+    
+    CCPAnimationCache();
+    ~CCPAnimationCache();
+    
+    static CCPAnimationCache* sharedPAnimationCache();   
+    static void purgeSharedPAnimationCache();
+
+    void addAnimation(const char* animationName, const char* fileAniData, const char* fileImage);    
+    
+    CCPAniData* animationForKey(const char* animationName, const char* key);
+    void removeAnimation(const char* animationName, CCPAniData* animation);
+    void removeAnimations(const char* animationName);
+    void removeAnimationForKey(const char* animationName, const char *key);
+    void removeAllAnimations();
+    void removeUnusedAnimations();
+};
+
+
+

@@ -1,0 +1,18 @@
+
+class MotionBlurScene: public CCNode
+{
+public:
+    
+    MotionBlurScene();
+    
+    virtual ~MotionBlurScene();
+    bool init();
+    
+    static MotionBlurScene* create();
+ 
+    virtual void execute();
+    virtual void setTargtNode(CCNode* targetNode);
+    virtual void visit();
+    
+};
+

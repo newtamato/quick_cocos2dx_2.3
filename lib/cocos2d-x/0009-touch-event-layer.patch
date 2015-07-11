@@ -1,0 +1,159 @@
+From 64d2e886e71585fd0cdc34c8e4c3333450c32418 Mon Sep 17 00:00:00 2001
+From: Jolie Hou <lhou@taplion.com>
+Date: Mon, 19 May 2014 18:52:02 +0800
+Subject: [PATCH 9/9] touch event layer
+
+---
+ lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp          | 13 ++-----------
+ .../layers_scenes_transitions_nodes/CCLayer.cpp       | 14 +++++++++-----
+ .../cocos2dx/touch_dispatcher/CCTouchDispatcher.cpp   | 19 ++++++++++++-------
+ 3 files changed, 23 insertions(+), 23 deletions(-)
+
+diff --git a/lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp b/lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp
+index 15c6c30..274f91e 100644
+--- a/lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp
++++ b/lib/cocos2d-x/cocos2dx/base_nodes/CCNode.cpp
+@@ -1255,7 +1255,7 @@ CCAffineTransform CCNode::nodeToParentTransform(void)
+         // Translate values
+         float x = m_obPosition.x;
+         float y = m_obPosition.y;
+-
++	
+         if (m_bIgnoreAnchorPointForPosition)
+         {
+             x += m_obAnchorPointInPoints.x;
+@@ -1573,6 +1573,7 @@ void CCNode::registerWithTouchDispatcher()
+             bool muti = m_pScriptTouchHandlerEntry->isMultiTouches();
+             if (muti){
+                 scene->addStandardTouchableNode(this);
++                scene->addTouchableNode(this);
+             }else{
+                 scene->addTouchableNode(this);
+             }
+@@ -1598,17 +1599,7 @@ void CCNode::registerScriptTouchHandler(int nHandler, bool bIsMultiTouches, int
+ {
+     unregisterScriptTouchHandler();
+     m_pScriptTouchHandlerEntry = CCTouchScriptHandlerEntry::create(nHandler, bIsMultiTouches, nPriority, bSwallowsTouches);
+-    if (m_pScriptTouchHandlerEntry){
+-        bool muti = m_pScriptTouchHandlerEntry->isMultiTouches();
+-        if (muti){
+-            CCScene *scene = getScene();
+-            if(scene){
+-                scene->addStandardTouchableNode(this);
+-                scene->removeTouchableNode(this);
+-            }
+ 
+-        }
+-    }
+     m_pScriptTouchHandlerEntry->retain();
+ }
+ 
+diff --git a/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCLayer.cpp b/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCLayer.cpp
+index 1893bad..48f287c 100644
+--- a/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCLayer.cpp
++++ b/lib/cocos2d-x/cocos2dx/layers_scenes_transitions_nodes/CCLayer.cpp
+@@ -109,10 +109,14 @@ void CCLayer::registerWithTouchDispatcher()
+ 	    }
+ 	    else
+ 	    {
+-	       pDispatcher->addTargetedDelegate(this,
+-						m_pScriptTouchHandlerEntry->getPriority(),
+-						m_pScriptTouchHandlerEntry->getSwallowsTouches());
+-	       LUALOG("[LUA] Add touch event handler: %d", m_pScriptTouchHandlerEntry->getHandler());
++            //lhou
++            pDispatcher->addStandardDelegate(this, 0);
++            pDispatcher->addTargetedDelegate(this, m_pScriptTouchHandlerEntry->getPriority(), m_pScriptTouchHandlerEntry->getSwallowsTouches());
++            
++//	       pDispatcher->addTargetedDelegate(this,
++//						m_pScriptTouchHandlerEntry->getPriority(),
++//						m_pScriptTouchHandlerEntry->getSwallowsTouches());
++	       CCLOG("[LUA] Add touch event handler: %d", m_pScriptTouchHandlerEntry->getHandler());
+ 	    }
+     }
+     else
+@@ -121,7 +125,7 @@ void CCLayer::registerWithTouchDispatcher()
+             pDispatcher->addStandardDelegate(this, 0);
+         } else {
+             pDispatcher->addStandardDelegate(this, 0);
+-            pDispatcher->addTargetedDelegate(this, m_nTouchPriority, true);
++//            pDispatcher->addTargetedDelegate(this, m_nTouchPriority, false);
+         }
+     }
+ }
+diff --git a/lib/cocos2d-x/cocos2dx/touch_dispatcher/CCTouchDispatcher.cpp b/lib/cocos2d-x/cocos2dx/touch_dispatcher/CCTouchDispatcher.cpp
+index 2307999..eec060c 100644
+--- a/lib/cocos2d-x/cocos2dx/touch_dispatcher/CCTouchDispatcher.cpp
++++ b/lib/cocos2d-x/cocos2dx/touch_dispatcher/CCTouchDispatcher.cpp
+@@ -331,13 +331,17 @@ void CCTouchDispatcher::touches(CCSet *pTouches, CCEvent *pEvent, unsigned int u
+      unsigned int uStandardHandlersCount = m_pStandardHandlers->count();
+     bool bNeedsMutableSet = (uTargetedHandlersCount && uStandardHandlersCount);
+ 
+-    pMutableTouches = (bNeedsMutableSet ? pTouches->mutableCopy() : pTouches);
++    bool isMutableTouch = pTouches->count() > 1;
++    if (isMutableTouch){
++        pMutableTouches = (bNeedsMutableSet ? pTouches->mutableCopy() : pTouches);
++    }
++    
+ 
+     struct ccTouchHandlerHelperData sHelper = m_sHandlerHelperData[uIndex];
+     //
+     // process the target handlers 1st
+     //
+-    if (uTargetedHandlersCount > 0)
++    if (isMutableTouch == false && uTargetedHandlersCount > 0)
+     {
+         CCTouch *pTouch;
+         CCSetIterator setIter;
+@@ -371,6 +375,7 @@ void CCTouchDispatcher::touches(CCSet *pTouches, CCEvent *pEvent, unsigned int u
+                     // moved ended canceled
+                     bClaimed = true;
+ 
++                    CCLOG("单点触摸:touch type is %d",sHelper.m_type);
+                     switch (sHelper.m_type)
+                     {
+                     case CCTOUCHMOVED:
+@@ -390,12 +395,12 @@ void CCTouchDispatcher::touches(CCSet *pTouches, CCEvent *pEvent, unsigned int u
+                 if (bClaimed && pHandler->isSwallowsTouches())
+                 {
+                     //lhou
+-                    if (bNeedsMutableSet == false)
++                    if (bNeedsMutableSet && isMutableTouch)
+                     {
+                         pMutableTouches->removeObject(pTouch);
+                     }
+ 
+-                    break;
++//                    break;
+                 }
+             }
+         }
+@@ -404,7 +409,7 @@ void CCTouchDispatcher::touches(CCSet *pTouches, CCEvent *pEvent, unsigned int u
+     //
+     // process standard handlers 2nd
+     //
+-    if (uStandardHandlersCount > 0 && pMutableTouches->count() > 0)
++    if (uStandardHandlersCount > 0 && isMutableTouch && pMutableTouches->count() > 0)
+     {
+         CCStandardTouchHandler *pHandler = NULL;
+         CCObject* pObj = NULL;
+@@ -416,7 +421,7 @@ void CCTouchDispatcher::touches(CCSet *pTouches, CCEvent *pEvent, unsigned int u
+             {
+                 break;
+             }
+-
++            CCLOG("多点触摸:touch type is %d",sHelper.m_type);
+             switch (sHelper.m_type)
+             {
+             case CCTOUCHBEGAN:
+@@ -435,7 +440,7 @@ void CCTouchDispatcher::touches(CCSet *pTouches, CCEvent *pEvent, unsigned int u
+         }
+     }
+ 
+-    if (bNeedsMutableSet)
++    if (isMutableTouch && bNeedsMutableSet)
+     {
+         pMutableTouches->release();
+     }
+-- 
+1.8.3.4
+
