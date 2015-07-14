@@ -208,6 +208,11 @@ end
 
 function UIButton:updateButtonImage_()
     local state = self.fsm_:getState()
+    if string.find(state, "press") then
+        self:setScale(0.97)
+    else
+       self:setScale(1)
+    end
     local image = self.images_[state]
 
     if not image then

@@ -19,7 +19,20 @@ function UIPushButton:ctor(images, options)
     self:setButtonImage(UIPushButton.PRESSED, images["pressed"], true)
     self:setButtonImage(UIPushButton.DISABLED, images["disabled"], true)
 end
+    function UIPushButton:revertOriginalButtonImage( ... )
+        if self.mOriginalImages == nil then
+            return 
+        end
+        
+        self:resetButtonImages(self.mOriginalImages)
+    end
+    function UIPushButton:resetButtonImages(images)
+        self.mOriginalImages = self.images_
 
+        self:setButtonImage(UIPushButton.NORMAL, images["normal"], true)
+        self:setButtonImage(UIPushButton.PRESSED, images["pressed"], true)
+        self:setButtonImage(UIPushButton.DISABLED, images["disabled"], true)
+    end
 function UIPushButton:setButtonImage(state, image, ignoreEmpty)
     assert(state == UIPushButton.NORMAL
         or state == UIPushButton.PRESSED
@@ -67,7 +80,6 @@ function UIPushButton:onTouch_(event)
     else
         if self.fsm_:canDoEvent("release") then
             self.fsm_:doEvent("release")
-            print("self.mReleaseSound is "..self.mReleaseSound)
             if self.mReleaseSound then
                 audio.playSound(self.mReleaseSound)
             end
@@ -83,6 +95,29 @@ function UIPushButton:onTouch_(event)
         end
     end
 end
+
+function UIPushButton:addIconWithOffset(icon,direction,offsetX)
+    if icon == nil then
+        return 
+    end
+    offsetX = offsetX or 0
+    local sprite = display.newSprite(icon)
+    self:addChild(sprite)
+    local iconSize = sprite:getContentSize()
+    local iconx,icony = 0,0
+    if self.sprite_[1] then
+
+        local ap = self:getAnchorPoint()
+        local spriteSize = self.sprite_[1]:getContentSize()
+        if direction == display.LEFT_CENTER then
+            iconx = -(spriteSize.width/2) + offsetX
+        end
+
+        sprite:setPositionX(iconx)
+    end
+
+end
+
 function UIPushButton:doActionOnTheList()
     self:setTouchSwallowEnabled(false)
 end

@@ -119,6 +119,31 @@ function UICheckBoxButton:onTouch_(event)
     end
 end
 
+function UICheckBoxButton:addIconWithOffset(icon,direction)
+    if icon == nil then
+        return 
+    end
+    if self.mIcon ~= nil then
+        return 
+    end
+    self.mIcon = icon
+    local sprite = display.newSprite(icon)
+    self:addChild(sprite)
+    local iconSize = sprite:getContentSize()
+    local iconx,icony = 0,0
+    if self.sprite_[1] then
+
+        local ap = self:getAnchorPoint()
+        local spriteSize = self.sprite_[1]:getContentSize()
+        if direction == display.LEFT_CENTER then
+            iconx = -(spriteSize.width/2)
+        end
+
+        sprite:setPositionX(iconx)
+    end
+
+end
+
 function UICheckBoxButton:getDefaultState_()
     local state = self.fsm_:getState()
     if state == UICheckBoxButton.ON or state == UICheckBoxButton.ON_DISABLED or state == UICheckBoxButton.ON_PRESSED then
