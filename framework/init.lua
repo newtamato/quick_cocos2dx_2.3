@@ -126,7 +126,7 @@ elseif device.platform == "ios" then
 elseif device.platform == "mac" then
     require(cc.PACKAGE_NAME .. ".platform.mac")
 end
-
+require(cc.PACKAGE_NAME .. ".porting.v3porting")
 require(cc.PACKAGE_NAME .. ".cc.init")
 
 if LOAD_DEPRECATED_API then

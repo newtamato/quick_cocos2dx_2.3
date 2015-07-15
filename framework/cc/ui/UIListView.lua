@@ -177,6 +177,17 @@ function UIListView:addItem(listItem, pos)
 	return self
 end
 
+function UIListView:getItemCount( ... )
+	if self.items_ then
+		return table.nums(self.items_)
+	end
+end
+
+function UIListView:removeItemAtIndex(index)
+	local listItem = self.items_[index]
+	self:removeItem(listItem)
+end
+
 function UIListView:removeItem(listItem, bAni)
 	local itemW, itemH = listItem:getItemSize()
 	self.container:removeChild(listItem)
@@ -356,6 +367,9 @@ function UIListView:layout_()
 	end
 	local containerY = self.viewRect_.height - self.size.height
 	print(self.viewRect_.height..","..self.size.height..",containerY is "..containerY)
+	if containerY < 0 then
+		containerY = 0
+	end
 	self.container:setPosition(0, containerY)
 end
 
