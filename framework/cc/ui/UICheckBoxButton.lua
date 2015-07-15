@@ -131,10 +131,10 @@ function UICheckBoxButton:addIconWithOffset(icon,direction)
     self:addChild(sprite)
     local iconSize = sprite:getContentSize()
     local iconx,icony = 0,0
-    if self.sprite_[1] then
+    if self.sprite_ then
 
         local ap = self:getAnchorPoint()
-        local spriteSize = self.sprite_[1]:getContentSize()
+        local spriteSize = self.sprite_:getContentSize()
         if direction == display.LEFT_CENTER then
             iconx = -(spriteSize.width/2)
         end
