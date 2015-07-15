@@ -112,6 +112,7 @@ CCScene::CCScene()
 , m_touchingTargets(NULL)
 , m_touchDispatchingEnabled(false)
 , m_touchRegistered(false)
+, m_touchEnabled(true)
 {
     m_touchableNodes = CCArray::createWithCapacity(100);
     m_touchableNodes->retain();
@@ -188,9 +189,24 @@ void CCScene::removeTouchableNode(CCNode *node)
 void CCScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
 {
     if (!m_touchDispatchingEnabled) return;
-
+    if (!this->m_touchEnabled) return;
+    
+     CCLuaLog("CCScene:ccTouchesBegan is 1");
     // cleanup
     m_touchingTargets->removeAllObjects();
+      // save touches id
+//    for (CCSetIterator it = pTouches->begin(); it != pTouches->end(); ++it)
+//    {
+//        m_touchingIds.insert(((CCTouch*)*it)->getID());
+//    }
+//
+//    // check current in touching
+//    if (m_touchingTargets->count())
+//    {
+//        dispatchingTouchEvent(pTouches, pEvent, CCTOUCHADDED);
+//        return;
+//    }
+
 
     // sort touchable nodes
     sortAllTouchableNodes(m_touchableNodes);
@@ -217,7 +233,7 @@ void CCScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
             checkTouchableNode = checkTouchableNode->getParent();
         } while (checkTouchableNode && isTouchable);
         if (!isTouchable) continue;
-
+        CCLuaLog("CCScene:ccTouchesBegan is 2");
         // prepare for touch testing
         touchTarget = NULL;
         const CCRect boundingBox = node->getCascadeBoundingBox();
@@ -251,7 +267,7 @@ void CCScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
             // touch points not in current target, try to next
             continue;
         }
-
+                CCLuaLog("CCScene:ccTouchesBegan is 3");
         // try to dispatching event
         CCArray *path = CCArray::createWithCapacity(10);
         node = touchTarget->getNode();
@@ -283,27 +299,34 @@ void CCScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
             // the target stop dispatching, try to next
             continue;
         }
-
+                        CCLuaLog("CCScene:ccTouchesBegan is 4");
         // phase: targeting
         node = touchTarget->getNode();
         bool ret = true;
         if (touchMode == kCCTouchesAllAtOnce)
         {
+                                    CCLuaLog("CCScene:ccTouchesBegan is 5");
             node->ccTouchesBegan(pTouches, pEvent);
         }
         else
         {
+                                                CCLuaLog("CCScene:ccTouchesBegan is 6");
             ret = node->ccTouchBegan(touchTarget->findTouch(pTouches), pEvent);
             
         }
+        CCLuaLog("CCScene:ccTouchesBegan is 7");
 
         if (ret)
         {
+            this->m_touchEnabled = false;
+            this->scheduleOnce(schedule_selector(CCScene::setCanTouchQuick), 0.2);
+            CCLuaLog("CCScene:ccTouchesBegan is 8");
 //            pTouches->removeObject(pt)
             m_touchingTargets->addObject(touchTarget);
 //            CCLOG("ADD TOUCH TARGET [%p]", touchTarget);
             if (node->isTouchSwallowEnabled())
             {
+                            CCLuaLog("CCScene:ccTouchesBegan is 9");
                 // target swallow touch event, stop dispatching
                 break;
             }
@@ -314,6 +337,10 @@ void CCScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
         // continue dispatching, try to next
     }
 }
+void CCScene::setCanTouchQuick(){
+    CCLOG("场景设置能够点击了");
+    this->m_touchEnabled = true;
+}
 
 void CCScene::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
 {
@@ -322,9 +349,24 @@ void CCScene::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
 
 void CCScene::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
 {
-    dispatchingTouchEvent(pTouches, pEvent, CCTOUCHENDED);
-    // remove all touching nodes
-//    CCLOG("TOUCH ENDED, REMOVE ALL TOUCH TARGETS");
+//     for (CCSetIterator it = pTouches->begin(); it != pTouches->end(); ++it)
+//    {
+//        m_touchingIds.erase(((CCTouch*)*it)->getID());
+//    }
+//
+//    if (m_touchingIds.size())
+//    {
+//        dispatchingTouchEvent(pTouches, pEvent, CCTOUCHREMOVED);
+//    }
+//    else
+//    {
+//        dispatchingTouchEvent(pTouches, pEvent, CCTOUCHENDED);
+//        // remove all touching nodes
+////        CCLOG("TOUCH ENDED, REMOVE ALL TOUCH TARGETS");
+//        m_touchingTargets->removeAllObjects();
+//    }
+     dispatchingTouchEvent(pTouches, pEvent, CCTOUCHENDED);
+    
     
 //    m_touchingTargets->removeAllObjects();
 }
